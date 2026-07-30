@@ -237,22 +237,53 @@
     }
     
     function copiar(idx) {
-        const index = parseInt(idx);
-        // Encontrar a fraseologia correta
-        let fraseologia = '';
-        
-        // Tentar achar na estrutura renderizada
-        const items = document.querySelectorAll('.frase-texto');
-        if (items[index]) {
-            fraseologia = items[index].innerText;
+        try {
+            const index = parseInt(idx);
+            
+            // Encontrar a fraseologia correta pelo índice
+            const items = document.querySelectorAll('.frase-texto');
+            if (items[index]) {
+                // Pegar o texto já renderizado
+                const texto = items[index].innerText || items[index].textContent;
+                
+                if (texto && texto.trim()) {
+                    // Tentar copiar via Clipboard API (moderno)
+                    navigator.clipboard.writeText(texto.trim())
+                        .then(() => {
+                            alert('✅ Copiado para a área de transferência!');
+                        })
+                        .catch(err => {
+                            // Fallback: copiar via método antigo
+                            copiarAntigo(texto.trim());
+                        });
+                } else {
+                    alert('❌ Texto não encontrado para copiar');
+                }
+            } else {
+                alert('❌ Fraseologia não encontrada');
+            }
+        } catch (erro) {
+            console.error('Erro ao copiar:', erro);
+            alert('❌ Erro ao copiar. Tente novamente.');
         }
+    }
+    
+    // Função fallback para cópia (navegadores antigos)
+    function copiarAntigo(texto) {
+        const textarea = document.createElement('textarea');
+        textarea.value = texto;
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
         
-        if (fraseologia) {
-            navigator.clipboard.writeText(fraseologia).then(() => {
-                alert('✅ Copiado para a área de transferência!');
-            }).catch(err => {
-                alert('Erro ao copiar. Tente selecionar e usar Ctrl+C');
-            });
+        try {
+            textarea.select();
+            document.execCommand('copy');
+            alert('✅ Copiado para a área de transferência!');
+        } catch (err) {
+            alert('❌ Erro ao copiar. Tente selecionar o texto manualmente.');
+        } finally {
+            document.body.removeChild(textarea);
         }
     }
     
