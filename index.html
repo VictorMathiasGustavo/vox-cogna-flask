@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}Vox Cogna - Biblioteca de Fraseologias{% endblock %}
+
+{% block content %}
+<!-- HEADER -->
+<header class="header">
+    <div class="header-content">
+        <h1>💜 Vox Cogna</h1>
+        <p class="header-subtitle">Victor Mathias Gustavo & Natalice Gomes Lima · Qualidade de Atendimento</p>
+        <div class="header-badge">📊 Escopo atual: atendimento N2 e N3</div>
+        <p class="header-quote">"O acesso à fraseologia certa, na hora certa, é o que transforma um atendimento em uma experiência memorável."</p>
+    </div>
+</header>
+
+<!-- MÉTRICAS -->
+<div class="metrics">
+    <div class="metric-card">
+        <div class="metric-number">{{ stats.total }}</div>
+        <div class="metric-label">Fraseologias</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-number">{{ stats.temas }}</div>
+        <div class="metric-label">Temas</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-number">{{ stats.assuntos }}</div>
+        <div class="metric-label">Assuntos</div>
+    </div>
+</div>
+
+<!-- FILTROS -->
+<aside class="sidebar">
+    <h3>Filtros</h3>
+    
+    <button class="btn-limpar" onclick="limparFiltros()">🔄 Limpar Filtros</button>
+    
+    <div class="filtro-grupo">
+        <label for="busca">Buscar na fraseologia</label>
+        <input type="text" id="busca" placeholder="Ex: reembolso, débito, prova..." 
+               onkeyup="aplicarFiltros()">
+    </div>
+    
+    <div class="filtro-grupo">
+        <label for="produto">Produto</label>
+        <select id="produto" onchange="aplicarFiltros()">
+            <option value="Todos">Todos</option>
+            {% for p in produtos %}
+            <option value="{{ p }}">{{ p }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <div class="filtro-grupo">
+        <label for="assunto">Assunto</label>
+        <select id="assunto" onchange="aplicarFiltros()">
+            <option value="Todos">Todos</option>
+            {% for a in assuntos %}
+            <option value="{{ a }}">{{ a }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</aside>
+
+<!-- CONTEÚDO PRINCIPAL -->
+<main class="main-content">
+    <div class="results-header">
+        <span id="resultados-count">Exibindo {{ fraseologias|length }} fraseologias</span>
+        <div class="btn-group">
+            <button class="btn-expand" onclick="expandirTodos()">📂 Expandir todos</button>
+            <button class="btn-collapse" onclick="recolherTodos()">📁 Recolher todos</button>
+        </div>
+    </div>
+    
+    <div id="fraseologias-container" class="fraseologias-container">
+        <!-- Renderizado por JavaScript -->
+    </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+    Vox Cogna · Time de Qualidade de Atendimento · Cogna Educação · 2026
+</footer>
+
+<script>
+    // Dados globais
+    const FRASEOLOGIAS = {{ fraseologias | tojson }};
+    const PRODUTOS = {{ produtos | tojson }};
+    const ASSUNTOS = {{ assuntos | tojson }};
+    
+    // Renderizar inicial
+    document.addEventListener('DOMContentLoaded', () => {
+        aplicarFiltros();
+    });
+    
+    function aplicarFiltros() {
+        const produto = document.getElementById('produto').value;
+        const assunto = document.getElementById('assunto').value;
+        const busca = document.getElementById('busca').value;
+        
+        // Faz request para API
+        fetch('/api/filtro', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                produto: produto,
+                assunto: assunto,
+                busca: busca
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            renderizarResultados(data.grupos, data.total);
+        });
+    }
+    
+    function renderizarResultados(grupos, total) {
+        const container = document.getElementById('fraseologias-container');
+        container.innerHTML = '';
+        
+        document.getElementById('resultados-count').textContent = 
+            `Exibindo ${total} fraseologia${total !== 1 ? 's' : ''}`;
+        
+        if (total === 0) {
+            container.innerHTML = '<div class="info-box">😕 Nenhuma fraseologia encontrada com os filtros selecionados.</div>';
+            return;
+        }
+        
+        // Renderizar por assunto
+        Object.keys(grupos).sort().forEach(assunto => {
+            const frases = grupos[assunto];
+            const assunto_div = document.createElement('div');
+            assunto_div.className = 'assunto-grupo';
+            
+            // Ícone por tipo de assunto
+            let icone = '📁';
+            let cor = '#5A1F7D';
+            if (assunto.toLowerCase().includes('financeiro')) {
+                icone = '💰';
+                cor = '#856404';
+            } else if (assunto.toLowerCase().includes('acadêmico')) {
+                icone = '🎓';
+                cor = '#155724';
+            } else if (assunto.toLowerCase().includes('moderação')) {
+                icone = '⚖️';
+                cor = '#5A1F7D';
+            } else if (assunto.toLowerCase().includes('escalonamento')) {
+                icone = '🔄';
+                cor = '#8B3A15';
+            }
+            
+            const titulo = document.createElement('h3');
+            titulo.style.color = cor;
+            titulo.innerHTML = `${icone} ${assunto}`;
+            assunto_div.appendChild(titulo);
+            
+            // Fraseologias
+            frases.forEach((frase, idx) => {
+                const frase_div = document.createElement('div');
+                frase_div.className = 'fraseologia-item';
+                
+                // Badges
+                let badges_html = '';
+                if (frase.status) {
+                    const status_lower = frase.status.toLowerCase();
+                    if (status_lower.includes('deferido') && !status_lower.includes('indeferido')) {
+                        badges_html += `<span class="badge badge-deferido">${frase.status}</span>`;
+                    } else if (status_lower.includes('indeferido')) {
+                        badges_html += `<span class="badge badge-indeferido">${frase.status}</span>`;
+                    } else if (status_lower.includes('sanar') || status_lower.includes('dúvida')) {
+                        badges_html += `<span class="badge badge-sanar-duvidas">${frase.status}</span>`;
+                    }
+                }
+                
+                const produto_badge_class = {
+                    'EAD Legado': 'badge-ead',
+                    'Presencial': 'badge-presencial',
+                    'PTC': 'badge-ptc',
+                    'Geral': 'badge-escalonamento',
+                    'Moderação': 'badge-moderacao',
+                }[frase.produto] || 'badge-academico';
+                
+                badges_html += `<span class="badge ${produto_badge_class}">${frase.produto}</span>`;
+                
+                // Layout com colunas
+                frase_div.innerHTML = `
+                    <div class="frase-header">
+                        <div class="frase-tema">
+                            <details>
+                                <summary>📌 ${frase.tema}</summary>
+                                <div class="frase-content">
+                                    <div class="frase-badges">${badges_html}</div>
+                                    <div class="frase-texto">${frase.fraseologia.replace(/\n/g, '<br>')}</div>
+                                    <div class="frase-footer">
+                                        <button class="btn-copiar" onclick="copiar('${idx}')">📋 Copiar</button>
+                                        ${frase.artigo ? `<a href="${frase.artigo}" target="_blank" class="artigo-link">🔗 Artigo Beedoo</a>` : '<span class="sem-artigo">— sem artigo vinculado</span>'}
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+                        <div class="frase-badges-inline">${badges_html}</div>
+                    </div>
+                `;
+                
+                assunto_div.appendChild(frase_div);
+            });
+            
+            container.appendChild(assunto_div);
+        });
+    }
+    
+    function limparFiltros() {
+        document.getElementById('busca').value = '';
+        document.getElementById('produto').value = 'Todos';
+        document.getElementById('assunto').value = 'Todos';
+        aplicarFiltros();
+    }
+    
+    function expandirTodos() {
+        document.querySelectorAll('details').forEach(d => d.open = true);
+    }
+    
+    function recolherTodos() {
+        document.querySelectorAll('details').forEach(d => d.open = false);
+    }
+    
+    function copiar(idx) {
+        const index = parseInt(idx);
+        // Encontrar a fraseologia correta
+        let fraseologia = '';
+        
+        // Tentar achar na estrutura renderizada
+        const items = document.querySelectorAll('.frase-texto');
+        if (items[index]) {
+            fraseologia = items[index].innerText;
+        }
+        
+        if (fraseologia) {
+            navigator.clipboard.writeText(fraseologia).then(() => {
+                alert('✅ Copiado para a área de transferência!');
+            }).catch(err => {
+                alert('Erro ao copiar. Tente selecionar e usar Ctrl+C');
+            });
+        }
+    }
+</script>
+{% endblock %}
