@@ -6,34 +6,27 @@
 <!-- HEADER -->
 <header class="header">
     <div class="header-content">
-        <h1>💜 Vox Cogna</h1>
-        <p class="header-subtitle">Victor Mathias Gustavo & Natalice Gomes Lima · Qualidade de Atendimento</p>
-        <div class="header-badge">📊 Escopo atual: atendimento N2 e N3</div>
+        <div class="header-top">
+            <div>
+                <h1>💜 Vox Cogna</h1>
+                <p class="header-subtitle">Victor Mathias Gustavo & Natalice Gomes Lima · Qualidade de Atendimento</p>
+            </div>
+            <button class="btn-tema" onclick="alternarTema()" title="Alternar tema">
+                <span id="tema-icon">🌙</span>
+            </button>
+        </div>
+        <div class="header-badge">📊 Atende à todos os times de atendimento</div>
         <p class="header-quote">"O acesso à fraseologia certa, na hora certa, é o que transforma um atendimento em uma experiência memorável."</p>
     </div>
 </header>
 
-<!-- MÉTRICAS -->
-<div class="metrics">
-    <div class="metric-card">
-        <div class="metric-number">{{ stats.total }}</div>
-        <div class="metric-label">Fraseologias</div>
-    </div>
-    <div class="metric-card">
-        <div class="metric-number">{{ stats.temas }}</div>
-        <div class="metric-label">Temas</div>
-    </div>
-    <div class="metric-card">
-        <div class="metric-number">{{ stats.assuntos }}</div>
-        <div class="metric-label">Assuntos</div>
-    </div>
-</div>
-
-<!-- FILTROS -->
-<aside class="sidebar">
-    <h3>Filtros</h3>
-    
-    <button class="btn-limpar" onclick="limparFiltros()">🔄 Limpar Filtros</button>
+<!-- LAYOUT COM SIDEBAR -->
+<div class="page-wrapper">
+    <!-- SIDEBAR À ESQUERDA -->
+    <aside class="sidebar">
+        <h3>Filtros</h3>
+        
+        <button class="btn-limpar" onclick="limparFiltros()">🔄 Limpar Filtros</button>
     
     <div class="filtro-grupo">
         <label for="busca">Buscar na fraseologia</label>
@@ -60,10 +53,25 @@
             {% endfor %}
         </select>
     </div>
-</aside>
+    </aside>
 
-<!-- CONTEÚDO PRINCIPAL -->
-<main class="main-content">
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="main-content">
+        <!-- MÉTRICAS -->
+        <div class="metrics">
+            <div class="metric-card">
+                <div class="metric-number">{{ stats.total }}</div>
+                <div class="metric-label">Fraseologias</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-number">{{ stats.temas }}</div>
+                <div class="metric-label">Temas</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-number">{{ stats.assuntos }}</div>
+                <div class="metric-label">Assuntos</div>
+            </div>
+        </div>
     <div class="results-header">
         <span id="resultados-count">Exibindo {{ fraseologias|length }} fraseologias</span>
         <div class="btn-group">
@@ -74,8 +82,9 @@
     
     <div id="fraseologias-container" class="fraseologias-container">
         <!-- Renderizado por JavaScript -->
-    </div>
-</main>
+        </div>
+    </main>
+</div>
 
 <!-- FOOTER -->
 <footer class="footer">
@@ -92,6 +101,13 @@
     document.addEventListener('DOMContentLoaded', () => {
         aplicarFiltros();
     });
+    
+    function isValidUrl(url) {
+        if (!url || typeof url !== 'string') return false;
+        const trimmed = url.trim();
+        // Só aceita URLs que começam com http:// ou https://
+        return trimmed.startsWith('http://') || trimmed.startsWith('https://');
+    }
     
     function aplicarFiltros() {
         const produto = document.getElementById('produto').value;
@@ -184,24 +200,18 @@
                 
                 badges_html += `<span class="badge ${produto_badge_class}">${frase.produto}</span>`;
                 
-                // Layout com colunas
+                // Layout com badges DENTRO do summary
                 frase_div.innerHTML = `
-                    <div class="frase-header">
-                        <div class="frase-tema">
-                            <details>
-                                <summary>📌 ${frase.tema}</summary>
-                                <div class="frase-content">
-                                    <div class="frase-badges">${badges_html}</div>
-                                    <div class="frase-texto">${frase.fraseologia.replace(/\n/g, '<br>')}</div>
-                                    <div class="frase-footer">
-                                        <button class="btn-copiar" onclick="copiar('${idx}')">📋 Copiar</button>
-                                        ${frase.artigo ? `<a href="${frase.artigo}" target="_blank" class="artigo-link">🔗 Artigo Beedoo</a>` : '<span class="sem-artigo">— sem artigo vinculado</span>'}
-                                    </div>
-                                </div>
-                            </details>
+                    <details>
+                        <summary>📌 ${frase.tema} <span style="margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">${badges_html}</span></summary>
+                        <div class="frase-content">
+                            <div class="frase-texto">${frase.fraseologia.replace(/\n/g, '<br>')}</div>
+                            <div class="frase-footer">
+                                <button class="btn-copiar" onclick="copiar('${idx}')">📋 Copiar</button>
+                                ${isValidUrl(frase.artigo) ? `<a href="${frase.artigo}" target="_blank" rel="noopener noreferrer" class="artigo-link">🔗 Artigo Beedoo</a>` : '<span class="sem-artigo">— sem artigo vinculado</span>'}
+                            </div>
                         </div>
-                        <div class="frase-badges-inline">${badges_html}</div>
-                    </div>
+                    </details>
                 `;
                 
                 assunto_div.appendChild(frase_div);
@@ -245,5 +255,27 @@
             });
         }
     }
+    
+    // FUNÇÃO DE ALTERNÂNCIA DE TEMA
+    function alternarTema() {
+        const html = document.documentElement;
+        const tempoAtual = html.getAttribute('data-tema');
+        const novoTema = tempoAtual === 'escuro' ? 'claro' : 'escuro';
+        
+        html.setAttribute('data-tema', novoTema);
+        localStorage.setItem('tema', novoTema);
+        
+        // Atualizar ícone
+        const icon = document.getElementById('tema-icon');
+        icon.textContent = novoTema === 'escuro' ? '☀️' : '🌙';
+    }
+    
+    // Carregar tema salvo
+    window.addEventListener('DOMContentLoaded', () => {
+        const temaSalvo = localStorage.getItem('tema') || 'claro';
+        document.documentElement.setAttribute('data-tema', temaSalvo);
+        const icon = document.getElementById('tema-icon');
+        icon.textContent = temaSalvo === 'escuro' ? '☀️' : '🌙';
+    });
 </script>
 {% endblock %}
