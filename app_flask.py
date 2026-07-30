@@ -123,6 +123,10 @@ def carregar_fraseologias() -> List[dict]:
                     status = str(row.get('STATUS', '')).strip() if 'STATUS' in df.columns else ''
                     artigo = str(row.get('Artigo', '')).strip() if 'Artigo' in df.columns else ''
                     
+                    # Validar artigo - só aceitar URLs válidas (http:// ou https://)
+                    if artigo and not (artigo.lower().startswith('http://') or artigo.lower().startswith('https://')):
+                        artigo = ''  # Se não for URL válida, deixar vazio
+                    
                     if not fraseologia or fraseologia.lower() in ('nan', ''):
                         continue
                     
@@ -138,7 +142,7 @@ def carregar_fraseologias() -> List[dict]:
                         'tema': tema if tema.lower() not in ('nan', '') else 'Sem tema',
                         'fraseologia': fraseologia,
                         'status': status if status.lower() not in ('nan', '') else '',
-                        'artigo': artigo if artigo.lower() not in ('nan', '') else '',
+                        'artigo': artigo,  # Já validado acima
                     })
             
             return registros if registros else []
