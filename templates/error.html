@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Erro - Vox Cogna{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <h1>⚠️ Erro</h1>
+    <p>{{ erro }}</p>
+    <div class="error-details">
+        <h3>Como resolver:</h3>
+        <ol>
+            <li>Verifique se o arquivo <strong>base_fraseologias.xlsx</strong> está no mesmo diretório que <strong>app_flask.py</strong></li>
+            <li>Feche o arquivo se estiver aberto no Excel</li>
+            <li>Recarregue a página</li>
+        </ol>
+    </div>
+</div>
+
+<style>
+    .error-container {
+        max-width: 600px;
+        margin: 60px auto;
+        padding: 40px;
+        background: #FFF3CD;
+        border: 2px solid #856404;
+        border-radius: 10px;
+        color: #5C3D00;
+        font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    
+    .error-container h1 {
+        color: #856404;
+        margin-bottom: 20px;
+    }
+    
+    .error-details {
+        margin-top: 20px;
+        background: white;
+        padding: 15px;
+        border-radius: 5px;
+    }
+    
+    .error-details ol {
+        padding-left: 20px;
+    }
+    
+    .error-details li {
+        margin: 10px 0;
+    }
+</style>
+{% endblock %}
