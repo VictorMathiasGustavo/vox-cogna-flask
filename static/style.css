@@ -233,7 +233,26 @@ body {
 .filtro-grupo select:focus {
     outline: none;
     border-color: var(--roxo-principal);
-    background: white;
+    background: var(--bg-white);
+    color: var(--text-dark);
+    box-shadow: 0 0 8px rgba(95, 122, 255, 0.3);
+}
+
+/* Dark mode - garantir visibilidade */
+[data-tema="escuro"] .filtro-grupo input,
+[data-tema="escuro"] .filtro-grupo select {
+    background: #2a3f5e;
+    color: #e8ebf0;
+}
+
+[data-tema="escuro"] .filtro-grupo input::placeholder {
+    color: #8a9bbb;
+}
+
+[data-tema="escuro"] .filtro-grupo input:focus,
+[data-tema="escuro"] .filtro-grupo select:focus {
+    background: #1a2847;
+    color: #e8ebf0;
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
