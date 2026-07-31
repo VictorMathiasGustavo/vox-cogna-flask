@@ -243,14 +243,26 @@
             // Encontrar a fraseologia correta pelo índice
             const items = document.querySelectorAll('.frase-texto');
             if (items[index]) {
-                // Pegar o texto já renderizado
-                const texto = items[index].innerText || items[index].textContent;
+                // Pegar o HTML do elemento
+                const elemento = items[index];
+                
+                // Clonar o elemento para não modificar o original
+                const clone = elemento.cloneNode(true);
+                
+                // Converter <br> em quebras de linha
+                const brs = clone.querySelectorAll('br');
+                brs.forEach(br => {
+                    br.replaceWith('\n');
+                });
+                
+                // Pegar o texto com quebras de linha preservadas
+                let texto = clone.innerText || clone.textContent;
                 
                 if (texto && texto.trim()) {
                     // Tentar copiar via Clipboard API (moderno)
                     navigator.clipboard.writeText(texto.trim())
                         .then(() => {
-                            alert('✅ Copiado para a área de transferência!');
+                            alert('✅ Copiado para a área de transferência!\n\n(Parágrafos preservados)');
                         })
                         .catch(err => {
                             // Fallback: copiar via método antigo
@@ -279,7 +291,7 @@
         try {
             textarea.select();
             document.execCommand('copy');
-            alert('✅ Copiado para a área de transferência!');
+            alert('✅ Copiado para a área de transferência!\n\n(Parágrafos preservados)');
         } catch (err) {
             alert('❌ Erro ao copiar. Tente selecionar o texto manualmente.');
         } finally {
