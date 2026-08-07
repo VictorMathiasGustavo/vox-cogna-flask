@@ -20,6 +20,25 @@
     </div>
 </header>
 
+<!-- AVISOS IMPORTANTES -->
+<div class="avisos-container">
+    <!-- AVISO 1: Status da Solicitação -->
+    <div class="aviso-banner aviso-1">
+        <span class="aviso-icon">⚠️</span>
+        <div class="aviso-texto">
+            <strong>Atenção:</strong> Verifique o status da solicitação (deferido ou indeferido) antes de utilizar a fraseologia e atualize o chamado conforme análise. Caso não utilize classificação de chamados, desconsidere este aviso.
+        </div>
+    </div>
+
+    <!-- AVISO 2: Dados Variáveis -->
+    <div class="aviso-banner aviso-2">
+        <span class="aviso-icon">✏️</span>
+        <div class="aviso-texto">
+            <strong>Importante:</strong> Não esqueça de substituir os dados variáveis (XXXX) por informações reais como datas, nomes, valores, períodos e outros dados específicos do caso antes de enviar a resposta ao aluno.
+        </div>
+    </div>
+</div>
+
 <!-- LAYOUT COM SIDEBAR -->
 <div class="page-wrapper">
     <!-- SIDEBAR À ESQUERDA -->
@@ -28,31 +47,31 @@
         
         <button class="btn-limpar" onclick="limparFiltros()">🔄 Limpar Filtros</button>
     
-    <div class="filtro-grupo">
-        <label for="busca">Buscar na fraseologia</label>
-        <input type="text" id="busca" placeholder="Ex: reembolso, débito, prova..." 
-               onkeyup="aplicarFiltros()">
-    </div>
+        <div class="filtro-grupo">
+            <label for="busca">Buscar na fraseologia</label>
+            <input type="text" id="busca" placeholder="Ex: reembolso, débito, prova..." 
+                   onkeyup="aplicarFiltros()">
+        </div>
+        
+        <div class="filtro-grupo">
+            <label for="produto">Produto</label>
+            <select id="produto" onchange="aplicarFiltros()">
+                <option value="Todos">Todos</option>
+                {% for p in produtos %}
+                <option value="{{ p }}">{{ p }}</option>
+                {% endfor %}
+            </select>
+        </div>
     
-    <div class="filtro-grupo">
-        <label for="produto">Produto</label>
-        <select id="produto" onchange="aplicarFiltros()">
-            <option value="Todos">Todos</option>
-            {% for p in produtos %}
-            <option value="{{ p }}">{{ p }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    
-    <div class="filtro-grupo">
-        <label for="assunto">Assunto</label>
-        <select id="assunto" onchange="aplicarFiltros()">
-            <option value="Todos">Todos</option>
-            {% for a in assuntos %}
-            <option value="{{ a }}">{{ a }}</option>
-            {% endfor %}
-        </select>
-    </div>
+        <div class="filtro-grupo">
+            <label for="assunto">Assunto</label>
+            <select id="assunto" onchange="aplicarFiltros()">
+                <option value="Todos">Todos</option>
+                {% for a in assuntos %}
+                <option value="{{ a }}">{{ a }}</option>
+                {% endfor %}
+            </select>
+        </div>
     </aside>
 
     <!-- CONTEÚDO PRINCIPAL -->
@@ -72,16 +91,48 @@
                 <div class="metric-label">Assuntos</div>
             </div>
         </div>
-    <div class="results-header">
-        <span id="resultados-count">Exibindo {{ fraseologias|length }} fraseologias</span>
-        <div class="btn-group">
-            <button class="btn-expand" onclick="expandirTodos()">📂 Expandir todos</button>
-            <button class="btn-collapse" onclick="recolherTodos()">📁 Recolher todos</button>
+        
+        <div class="results-header">
+            <span id="resultados-count">Exibindo {{ fraseologias|length }} fraseologias</span>
+            <div class="btn-group">
+                <button class="btn-expand" onclick="expandirTodos()">📂 Expandir todos</button>
+                <button class="btn-collapse" onclick="recolherTodos()">📁 Recolher todos</button>
+            </div>
         </div>
-    </div>
-    
-    <div id="fraseologias-container" class="fraseologias-container">
-        <!-- Renderizado por JavaScript -->
+        
+        <div id="fraseologias-container" class="fraseologias-container">
+            {% for frase in fraseologias %}
+            <div class="frase-item" data-produto="{{ frase.produto }}" data-assunto="{{ frase.assunto }}">
+                <details>
+                    <summary>
+                        📌 {{ frase.tema }}
+                        <span style="margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
+                            {% if frase.status %}
+                                {% if frase.status == 'DEFERIDO' %}
+                                    <span class="badge badge-deferido">DEFERIDO</span>
+                                {% elif frase.status == 'INDEFERIDO' %}
+                                    <span class="badge badge-indeferido">INDEFERIDO</span>
+                                {% elif frase.status == 'SANAR DÚVIDAS' %}
+                                    <span class="badge badge-sanar-duvidas">SANAR DÚVIDAS</span>
+                                {% endif %}
+                            {% endif %}
+                            <span class="badge badge-{{ frase.produto|lower|replace(' ', '-')|replace('pós-graduação', 'pos') }}">{{ frase.produto }}</span>
+                        </span>
+                    </summary>
+                    <div class="frase-content">
+                        <div class="frase-texto">{{ frase.fraseologia }}</div>
+                        <div class="frase-footer">
+                            <button class="btn-copiar" data-index="{{ loop.index0 }}" onclick="copiarFraseologia(this)">📋 Copiar</button>
+                            {% if frase.artigo and (frase.artigo.startswith('http://') or frase.artigo.startswith('https://')) %}
+                                <a href="{{ frase.artigo }}" target="_blank" rel="noopener noreferrer" class="artigo-link">🔗 Artigo Beedoo</a>
+                            {% else %}
+                                <span class="sem-artigo">— sem artigo vinculado</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </details>
+            </div>
+            {% endfor %}
         </div>
     </main>
 </div>
@@ -91,134 +142,102 @@
     Vox Cogna · Time de Qualidade de Atendimento · Cogna Educação · 2026
 </footer>
 
+{% endblock %}
+
+{% block scripts %}
 <script>
-    // Dados globais
-    const FRASEOLOGIAS = {{ fraseologias | tojson }};
-    const PRODUTOS = {{ produtos | tojson }};
-    const ASSUNTOS = {{ assuntos | tojson }};
-    
-    // Renderizar inicial
-    document.addEventListener('DOMContentLoaded', () => {
-        aplicarFiltros();
-    });
-    
-    function isValidUrl(url) {
-        if (!url || typeof url !== 'string') return false;
-        const trimmed = url.trim();
-        // Só aceita URLs que começam com http:// ou https://
-        return trimmed.startsWith('http://') || trimmed.startsWith('https://');
-    }
-    
-    function aplicarFiltros() {
-        const produto = document.getElementById('produto').value;
-        const assunto = document.getElementById('assunto').value;
-        const busca = document.getElementById('busca').value;
-        
-        // Faz request para API
-        fetch('/api/filtro', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                produto: produto,
-                assunto: assunto,
-                busca: busca
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            renderizarResultados(data.grupos, data.total);
-        });
-    }
-    
-    function renderizarResultados(grupos, total) {
-        const container = document.getElementById('fraseologias-container');
-        container.innerHTML = '';
-        
-        document.getElementById('resultados-count').textContent = 
-            `Exibindo ${total} fraseologia${total !== 1 ? 's' : ''}`;
-        
-        if (total === 0) {
-            container.innerHTML = '<div class="info-box">😕 Nenhuma fraseologia encontrada com os filtros selecionados.</div>';
-            return;
-        }
-        
-        // Renderizar por assunto
-        Object.keys(grupos).sort().forEach(assunto => {
-            const frases = grupos[assunto];
-            const assunto_div = document.createElement('div');
-            assunto_div.className = 'assunto-grupo';
+    // ✅ FUNÇÃO COPIAR - CORRIGIDA
+    function copiarFraseologia(btn) {
+        try {
+            const frazeElement = btn.closest('.frase-footer').previousElementSibling;
+            const texto = frazeElement.innerText || frazeElement.textContent;
             
-            // Ícone por tipo de assunto
-            let icone = '📁';
-            let cor = '#5A1F7D';
-            if (assunto.toLowerCase().includes('financeiro')) {
-                icone = '💰';
-                cor = '#856404';
-            } else if (assunto.toLowerCase().includes('acadêmico')) {
-                icone = '🎓';
-                cor = '#155724';
-            } else if (assunto.toLowerCase().includes('moderação')) {
-                icone = '⚖️';
-                cor = '#5A1F7D';
-            } else if (assunto.toLowerCase().includes('escalonamento')) {
-                icone = '🔄';
-                cor = '#8B3A15';
+            if (!texto || texto.trim() === '') {
+                alert('❌ Nenhum texto para copiar');
+                return;
             }
             
-            const titulo = document.createElement('h3');
-            titulo.style.color = cor;
-            titulo.innerHTML = `${icone} ${assunto}`;
-            assunto_div.appendChild(titulo);
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(texto.trim()).then(() => {
+                    const oldText = btn.innerText;
+                    btn.innerText = '✅ Copiado!';
+                    btn.classList.add('sucesso');
+                    
+                    setTimeout(() => {
+                        btn.innerText = oldText;
+                        btn.classList.remove('sucesso');
+                    }, 2000);
+                    
+                    alert('✅ Copiado para a área de transferência!');
+                }).catch((err) => {
+                    console.error('Erro Clipboard:', err);
+                    copiarFallback(texto.trim());
+                });
+            } else {
+                copiarFallback(texto.trim());
+            }
+        } catch (erro) {
+            console.error('Erro ao copiar:', erro);
+            alert('❌ Erro ao copiar. Tente novamente.');
+        }
+    }
+    
+    // ✅ FALLBACK PARA NAVEGADORES ANTIGOS
+    function copiarFallback(texto) {
+        try {
+            const textarea = document.createElement('textarea');
+            textarea.value = texto;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            textarea.style.top = '-9999px';
+            document.body.appendChild(textarea);
             
-            // Fraseologias
-            frases.forEach((frase, idx) => {
-                const frase_div = document.createElement('div');
-                frase_div.className = 'fraseologia-item';
-                
-                // Badges
-                let badges_html = '';
-                if (frase.status) {
-                    const status_lower = frase.status.toLowerCase();
-                    if (status_lower.includes('deferido') && !status_lower.includes('indeferido')) {
-                        badges_html += `<span class="badge badge-deferido">${frase.status}</span>`;
-                    } else if (status_lower.includes('indeferido')) {
-                        badges_html += `<span class="badge badge-indeferido">${frase.status}</span>`;
-                    } else if (status_lower.includes('sanar') || status_lower.includes('dúvida')) {
-                        badges_html += `<span class="badge badge-sanar-duvidas">${frase.status}</span>`;
-                    }
-                }
-                
-                const produto_badge_class = {
-                    'EAD Legado': 'badge-ead',
-                    'Presencial': 'badge-presencial',
-                    'PTC': 'badge-ptc',
-                    'Geral': 'badge-escalonamento',
-                    'Moderação': 'badge-moderacao',
-                }[frase.produto] || 'badge-academico';
-                
-                badges_html += `<span class="badge ${produto_badge_class}">${frase.produto}</span>`;
-                
-                // Layout com badges DENTRO do summary
-                frase_div.innerHTML = `
-                    <details>
-                        <summary>📌 ${frase.tema} <span style="margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">${badges_html}</span></summary>
-                        <div class="frase-content">
-                            <div class="frase-texto">${frase.fraseologia.replace(/\n/g, '<br>')}</div>
-                            <div class="frase-footer">
-                                <button class="btn-copiar" onclick="copiar('${idx}')">📋 Copiar</button>
-                                ${isValidUrl(frase.artigo) ? `<a href="${frase.artigo}" target="_blank" rel="noopener noreferrer" class="artigo-link">🔗 Artigo Beedoo</a>` : '<span class="sem-artigo">— sem artigo vinculado</span>'}
-                            </div>
-                        </div>
-                    </details>
-                `;
-                
-                assunto_div.appendChild(frase_div);
-            });
+            textarea.select();
+            const resultado = document.execCommand('copy');
             
-            container.appendChild(assunto_div);
+            document.body.removeChild(textarea);
+            
+            if (resultado) {
+                alert('✅ Copiado para a área de transferência!');
+            } else {
+                alert('❌ Erro ao copiar. Selecione o texto manualmente.');
+            }
+        } catch (erro) {
+            console.error('Erro fallback:', erro);
+            alert('❌ Erro ao copiar. Tente selecionar o texto manualmente.');
+        }
+    }
+    
+    // ✅ FILTROS - CORRIGIDO PARA ASSUNTO
+    function aplicarFiltros() {
+        const busca = document.getElementById('busca').value.toLowerCase().trim();
+        const produto = document.getElementById('produto').value;
+        const assunto = document.getElementById('assunto').value;
+        
+        const items = document.querySelectorAll('.frase-item');
+        let count = 0;
+        
+        items.forEach(item => {
+            // Pegar dados dos atributos
+            const itemProduto = item.getAttribute('data-produto');
+            const itemAssunto = item.getAttribute('data-assunto');
+            const tema = item.querySelector('summary').textContent.toLowerCase();
+            
+            // Aplicar filtros
+            let produtoMatch = produto === 'Todos' || itemProduto === produto;
+            let assuntoMatch = assunto === 'Todos' || itemAssunto === assunto;
+            let buscaMatch = busca === '' || tema.includes(busca);
+            
+            // Mostrar ou ocultar
+            if (produtoMatch && assuntoMatch && buscaMatch) {
+                item.style.display = '';
+                count++;
+            } else {
+                item.style.display = 'none';
+            }
         });
+        
+        document.getElementById('resultados-count').textContent = `Exibindo ${count} fraseologias`;
     }
     
     function limparFiltros() {
@@ -236,70 +255,6 @@
         document.querySelectorAll('details').forEach(d => d.open = false);
     }
     
-    function copiar(idx) {
-        try {
-            const index = parseInt(idx);
-            
-            // Encontrar a fraseologia correta pelo índice
-            const items = document.querySelectorAll('.frase-texto');
-            if (items[index]) {
-                // Pegar o HTML do elemento
-                const elemento = items[index];
-                
-                // Clonar o elemento para não modificar o original
-                const clone = elemento.cloneNode(true);
-                
-                // Converter <br> em quebras de linha
-                const brs = clone.querySelectorAll('br');
-                brs.forEach(br => {
-                    br.replaceWith('\n');
-                });
-                
-                // Pegar o texto com quebras de linha preservadas
-                let texto = clone.innerText || clone.textContent;
-                
-                if (texto && texto.trim()) {
-                    // Tentar copiar via Clipboard API (moderno)
-                    navigator.clipboard.writeText(texto.trim())
-                        .then(() => {
-                            alert('✅ Copiado para a área de transferência!\n\n(Parágrafos preservados)');
-                        })
-                        .catch(err => {
-                            // Fallback: copiar via método antigo
-                            copiarAntigo(texto.trim());
-                        });
-                } else {
-                    alert('❌ Texto não encontrado para copiar');
-                }
-            } else {
-                alert('❌ Fraseologia não encontrada');
-            }
-        } catch (erro) {
-            console.error('Erro ao copiar:', erro);
-            alert('❌ Erro ao copiar. Tente novamente.');
-        }
-    }
-    
-    // Função fallback para cópia (navegadores antigos)
-    function copiarAntigo(texto) {
-        const textarea = document.createElement('textarea');
-        textarea.value = texto;
-        textarea.style.position = 'fixed';
-        textarea.style.left = '-9999px';
-        document.body.appendChild(textarea);
-        
-        try {
-            textarea.select();
-            document.execCommand('copy');
-            alert('✅ Copiado para a área de transferência!\n\n(Parágrafos preservados)');
-        } catch (err) {
-            alert('❌ Erro ao copiar. Tente selecionar o texto manualmente.');
-        } finally {
-            document.body.removeChild(textarea);
-        }
-    }
-    
-    // FUNÇÃO DE ALTERNÂNCIA DE TEMA
     function alternarTema() {
         const html = document.documentElement;
         const tempoAtual = html.getAttribute('data-tema');
@@ -308,13 +263,12 @@
         html.setAttribute('data-tema', novoTema);
         localStorage.setItem('tema', novoTema);
         
-        // Atualizar ícone
         const icon = document.getElementById('tema-icon');
         icon.textContent = novoTema === 'escuro' ? '☀️' : '🌙';
     }
     
-    // Carregar tema salvo
-    window.addEventListener('DOMContentLoaded', () => {
+    // ✅ INICIALIZAR
+    document.addEventListener('DOMContentLoaded', function() {
         const temaSalvo = localStorage.getItem('tema') || 'claro';
         document.documentElement.setAttribute('data-tema', temaSalvo);
         const icon = document.getElementById('tema-icon');
