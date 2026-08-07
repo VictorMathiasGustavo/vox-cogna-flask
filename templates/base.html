@@ -1,16 +1,13 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-tema="claro">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Vox Cogna - Biblioteca de Fraseologias{% endblock %}</title>
+    <title>{% block title %}Vox Cogna{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="container">
-        {% block content %}{% endblock %}
-    </div>
-    
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    {% block content %}{% endblock %}
+    {% block scripts %}{% endblock %}
 </body>
 </html>
